@@ -10,6 +10,60 @@
 #include <pcl/gpu/octree/octree.hpp>
 #include <pcl/gpu/containers/device_array.h>
 
+
+const int TEST_NUM = 100;
+const int max_answers = 500;
+
+
+void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
+{
+
+
+    // prepare device cloud
+    pcl::gpu::Octree::PointCloud cloud_device;
+    cloud_device.upload(points);
+
+    // prepare queries_device
+    pcl::gpu::Octree::Queries queries_device;
+    // pcl::gpu::Octree::Radiuses radiuses_device;
+    queries_device.upload(queries);
+
+    pcl::gpu::NeighborIndices result_device(queries_device.size(), max_answers);
+
+    // build device octree
+    pcl::gpu::Octree octree_device;
+    octree_device.setCloud(cloud_device);
+
+    octree_device.build();
+
+    // octree_device.internalDownload();
+
+    pcl::gpu::Octree::ResultSqrDists sqr_distance;
+
+    for (int i = 0; i < TEST_NUM; i++)
+    {
+
+        auto start = std::chrono::steady_clock::now();
+
+        octree_device.approxNearestSearch(queries_device, result_device, sqr_distance);
+
+        auto stop = std::chrono::steady_clock::now();
+        auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+
+        printf("approx cuda took %.3f milliseconds \n", ipp_time);
+    }
+
+    std::vector<int> downloaded;
+    std::vector<float> dists_device_downloaded;
+    result_device.data.download(downloaded);
+    sqr_distance.download(dists_device_downloaded);
+
+    printf("result size is %ld \n\n\n", downloaded.size());
+}
+
+
+
+
 int main(int argc, char **argv)
 {
 
@@ -41,7 +95,7 @@ int main(int argc, char **argv)
     //==========================================================================================
 
     constexpr int max_answers = 500;
-    std::size_t data_size = 8710000;
+    std::size_t data_size = 871000;
     std::size_t query_size = 10000;
     std::vector<pcl::PointXYZ> points;
     std::vector<pcl::PointXYZ> queries;
@@ -69,44 +123,7 @@ int main(int argc, char **argv)
 
     // cuda device cloud
 
-    // prepare device cloud
-    pcl::gpu::Octree::PointCloud cloud_device;
-    cloud_device.upload(points);
 
-    // prepare queries_device
-    pcl::gpu::Octree::Queries queries_device;
-    // pcl::gpu::Octree::Radiuses radiuses_device;
-    queries_device.upload(queries);
 
-    pcl::gpu::NeighborIndices result_device(queries_device.size(), max_answers);
-
-    // build device octree
-    pcl::gpu::Octree octree_device;
-    octree_device.setCloud(cloud_device);
-
-    octree_device.build();
-
-    octree_device.internalDownload();
-
-    pcl::gpu::Octree::ResultSqrDists sqr_distance;
-
-    for (int i = 0; i < 100; i++)
-    {
-
-        auto start = std::chrono::steady_clock::now();
-
-        octree_device.approxNearestSearch(queries_device, result_device, sqr_distance);
-
-        auto stop = std::chrono::steady_clock::now();
-        auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
-
-        printf("approx cuda took %.3f milliseconds \n", ipp_time);
-    }
-
-    std::vector<int> downloaded;
-    std::vector<float> dists_device_downloaded;
-    result_device.data.download(downloaded);
-    sqr_distance.download(dists_device_downloaded);
-
-    printf("result size is %ld \n\n\n", downloaded.size());
+    cuda_octree_approxNearestSearch(points, queries);
 }
