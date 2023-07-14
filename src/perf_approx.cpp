@@ -10,14 +10,54 @@
 #include <pcl/gpu/octree/octree.hpp>
 #include <pcl/gpu/containers/device_array.h>
 
-
-const int TEST_NUM = 100;
+const int TEST_NUM = 20;
 const int max_answers = 500;
 
+void cuda_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
+                              std::vector<pcl::PointXYZ> &queries,
+                              std::vector<float> &radiuses)
+{
+    // prepare device cloud
+    pcl::gpu::Octree::PointCloud cloud_device;
+    cloud_device.upload(points);
+
+    // prepare queries_device
+    pcl::gpu::Octree::Queries queries_device;
+    pcl::gpu::Octree::Radiuses radiuses_device;
+    queries_device.upload(queries);
+    radiuses_device.upload(radiuses);
+
+    // build device octree
+    pcl::gpu::Octree octree_device;
+    octree_device.setCloud(cloud_device);
+    octree_device.build();
+    // octree_device.internalDownload();
+
+    pcl::gpu::NeighborIndices result_device(queries_device.size(), max_answers);
+
+    for (int i = 0; i < TEST_NUM; i++)
+    {
+
+        auto start = std::chrono::steady_clock::now();
+
+        octree_device.radiusSearch(queries_device, radiuses_device, max_answers, result_device);
+
+        auto stop = std::chrono::steady_clock::now();
+        auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+
+        printf("radius search cuda took %.3f milliseconds \n", ipp_time);
+    }
+
+    std::vector<int> downloaded;
+    // std::vector<float> dists_device_downloaded;
+    result_device.data.download(downloaded);
+    // sqr_distance.download(dists_device_downloaded);
+
+    printf("result size is %ld \n\n\n", downloaded.size());
+}
 
 void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
 {
-
 
     // prepare device cloud
     pcl::gpu::Octree::PointCloud cloud_device;
@@ -61,13 +101,11 @@ void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::ve
     printf("result size is %ld \n\n\n", downloaded.size());
 }
 
-
-
-
 int main(int argc, char **argv)
 {
 
     std::mt19937 gen(10);
+        // std::mt19937 genRadius(10);
 
     // random point value vary from 0 to 1024
     std::uniform_real_distribution<> dis(0.0, 1024.0);
@@ -94,13 +132,22 @@ int main(int argc, char **argv)
 
     //==========================================================================================
 
+
+
+
     constexpr int max_answers = 500;
     std::size_t data_size = 871000;
     std::size_t query_size = 10000;
+    float max_radius    = 1024.f/15.f;
+
+
+
     std::vector<pcl::PointXYZ> points;
     std::vector<pcl::PointXYZ> queries;
     std::vector<float> radiuses;
     std::vector<int> indices;
+
+        std::uniform_real_distribution<> disRadius(0.0, max_radius);
 
     points.resize(data_size);
 
@@ -112,18 +159,26 @@ int main(int argc, char **argv)
     }
 
     queries.resize(query_size);
+    radiuses.resize(query_size);
 
     for (std::size_t i = 0; i < query_size; ++i)
     {
         queries[i].x = dis(gen);
         queries[i].y = dis(gen);
         queries[i].z = dis(gen);
-        // radiuses[i]  = ((float)rand())/(float)RAND_MAX * max_radius;
+        radiuses[i]  = disRadius(gen);
     };
+
+
+        for (int i = 0; i < query_size; i++)
+    {
+        printf("%.4f \n", radiuses[i]);
+    }
+
+
 
     // cuda device cloud
 
-
-
     cuda_octree_approxNearestSearch(points, queries);
+    cuda_octree_radiusSearch(points, queries, radiuses);
 }
