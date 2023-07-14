@@ -7,6 +7,8 @@
 // #include <pcl/common/distances.h>
 #include <pcl/point_types.h>
 
+#include <pcl/octree/octree.h>
+
 #include <pcl/gpu/octree/octree.hpp>
 #include <pcl/gpu/containers/device_array.h>
 
@@ -54,6 +56,49 @@ void cuda_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
     // sqr_distance.download(dists_device_downloaded);
 
     printf("result size is %ld \n\n\n", downloaded.size());
+}
+
+void pcl_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
+{
+
+    // prepare host cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_host(new pcl::PointCloud<pcl::PointXYZ>);
+    cloud_host->width = points.size();
+    cloud_host->height = 1;
+    cloud_host->resize(cloud_host->width * cloud_host->height);
+
+    for (std::size_t i = 0; i < cloud_host->size(); ++i)
+    {
+        (*cloud_host)[i].x = points[i].x;
+        (*cloud_host)[i].y = points[i].y;
+        (*cloud_host)[i].z = points[i].z;
+    }
+
+    float host_octree_resolution = 25.f;
+    std::cout << "[!] Host octree resolution: " << host_octree_resolution << std::endl
+              << std::endl;
+
+    // build host octree
+    pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree_host(host_octree_resolution);
+    octree_host.setInputCloud(cloud_host);
+    octree_host.addPointsFromInputCloud();
+
+    pcl::index_t inds;
+    float dist;
+
+    for (int idx = 0; idx < TEST_NUM; idx++)
+    {
+
+        auto start = std::chrono::steady_clock::now();
+
+        for (std::size_t i = 0; i < queries.size(); ++i)
+            octree_host.approxNearestSearch(queries[i], inds, dist);
+
+        auto stop = std::chrono::steady_clock::now();
+        auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+
+        printf("pcl approx nearest took %.3f milliseconds \n", ipp_time);
+    }
 }
 
 void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
@@ -153,4 +198,7 @@ int main(int argc, char **argv)
 
     cuda_octree_approxNearestSearch(points, queries);
     cuda_octree_radiusSearch(points, queries, radiuses);
+
+
+    pcl_octree_approxNearestSearch(points, queries);
 }
