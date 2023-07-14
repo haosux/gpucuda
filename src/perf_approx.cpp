@@ -104,50 +104,25 @@ void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::ve
 int main(int argc, char **argv)
 {
 
-    std::mt19937 gen(10);
-        // std::mt19937 genRadius(10);
-
-    // random point value vary from 0 to 1024
-    std::uniform_real_distribution<> dis(0.0, 1024.0);
-
-    // create a point cloud
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-
-    // Generate pointcloud data
-    cloud->width = 1000;
-    cloud->height = 1;
-    cloud->points.resize(cloud->width * cloud->height);
-
-    for (int i = 0; i < 10; i++)
-    {
-        printf("%.4f \n", dis(gen));
-    }
-
-    for (std::size_t i = 0; i < cloud->size(); ++i)
-    {
-        (*cloud)[i].x = dis(gen);
-        (*cloud)[i].y = dis(gen);
-        (*cloud)[i].z = dis(gen);
-    }
-
     //==========================================================================================
-
-
-
 
     constexpr int max_answers = 500;
     std::size_t data_size = 871000;
     std::size_t query_size = 10000;
-    float max_radius    = 1024.f/15.f;
-
-
+    float max_radius = 1024.f / 15.f;
 
     std::vector<pcl::PointXYZ> points;
     std::vector<pcl::PointXYZ> queries;
     std::vector<float> radiuses;
     std::vector<int> indices;
 
-        std::uniform_real_distribution<> disRadius(0.0, max_radius);
+    // random point value vary from 0 to 1024
+
+    std::mt19937 gen(10);
+
+    std::uniform_real_distribution<> dis(0.0, 1024.0);
+
+    std::uniform_real_distribution<> disRadius(0.0, max_radius);
 
     points.resize(data_size);
 
@@ -166,16 +141,13 @@ int main(int argc, char **argv)
         queries[i].x = dis(gen);
         queries[i].y = dis(gen);
         queries[i].z = dis(gen);
-        radiuses[i]  = disRadius(gen);
+        radiuses[i] = disRadius(gen);
     };
 
-
-        for (int i = 0; i < query_size; i++)
-    {
-        printf("%.4f \n", radiuses[i]);
-    }
-
-
+    // for (int i = 0; i < query_size; i++)
+    // {
+    //     printf("%.4f \n", radiuses[i]);
+    // }
 
     // cuda device cloud
 
