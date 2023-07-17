@@ -2,7 +2,7 @@
 
 
 running Example  
-
+```bash
 cuda approx nearest took 0.249 milliseconds 
 cuda approx nearest took 0.051 milliseconds 
 cuda approx nearest took 0.050 milliseconds 
@@ -97,3 +97,5 @@ pcl radius search took 452.378 milliseconds
 pcl radius search took 453.132 milliseconds 
 pcl radius search took 450.900 milliseconds 
 pcl radius search took 454.365 milliseconds
+
+```
