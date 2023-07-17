@@ -1,7 +1,7 @@
 # gpucuda
 
 
-running Example  
+running Example  on i7-8700 and RTX 2080Ti 
 ```bash
 cuda approx nearest took 0.249 milliseconds 
 cuda approx nearest took 0.051 milliseconds 
