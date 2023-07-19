@@ -99,3 +99,38 @@ pcl radius search took 450.900 milliseconds
 pcl radius search took 454.365 milliseconds
 
 ```
+
+running example on i7-1165G7
+
+```bash
+oneapi pcl octree test
+point data  size is     871000
+point query size is      10000
+max radius  size is      68.3
+oneapi approx nearest took 0.295 milliseconds 
+oneapi approx nearest took 0.263 milliseconds 
+oneapi approx nearest took 0.258 milliseconds 
+oneapi approx nearest took 0.206 milliseconds 
+oneapi approx nearest took 0.276 milliseconds 
+oneapi approx nearest took 0.255 milliseconds 
+oneapi approx nearest took 0.275 milliseconds 
+oneapi approx nearest took 0.236 milliseconds 
+oneapi approx nearest took 0.162 milliseconds 
+oneapi approx nearest took 0.168 milliseconds 
+result size is 10000 
+
+
+[!] Host octree resolution: 25
+
+pcl approx nearest took 7.624 milliseconds 
+pcl approx nearest took 7.982 milliseconds 
+pcl approx nearest took 8.488 milliseconds 
+pcl approx nearest took 7.663 milliseconds 
+pcl approx nearest took 8.042 milliseconds 
+pcl approx nearest took 7.894 milliseconds 
+pcl approx nearest took 8.576 milliseconds
+pcl approx nearest took 8.061 milliseconds 
+pcl approx nearest took 8.510 milliseconds 
+pcl approx nearest took 7.122 milliseconds
+
+```
