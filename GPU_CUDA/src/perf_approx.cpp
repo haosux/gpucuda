@@ -65,8 +65,6 @@ void pcl_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
 
         printf("pcl radius search took %.3f milliseconds \n", ipp_time);
     }
-
-
 }
 
 void cuda_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
@@ -251,9 +249,8 @@ int main(int argc, char **argv)
     // cuda device cloud
 
     cuda_octree_approxNearestSearch(points, queries);
-    cuda_octree_radiusSearch(points, queries, radiuses);
-
     pcl_octree_approxNearestSearch(points, queries);
 
+    cuda_octree_radiusSearch(points, queries, radiuses);
     pcl_octree_radiusSearch(points, queries, radiuses);
 }
