@@ -1,5 +1,13 @@
 # gpucuda
 
+| 算法 (毫秒)        |  1165G7 (Win) | RTX2080 Ti  8700  | 1165 加速比 | RTX2080 Ti 加速比 |
+|------              | --------------|-------------------|-------------|-------------------|
+| pcl radius search  |  228          |   454             |             |                   |
+| gpu radius search  |  13.8         |   3.32            |   16.52     |     136.7         |
+| pcl approx nearest |  8.7          |   14.3            |             |                   |
+| gpu approx nearest |  0.36         |   0.047           |   24.17     |     304.3         |
+
+
 
 running Example  on i7-8700 and RTX 2080Ti 
 ```bash
