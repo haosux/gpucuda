@@ -16,6 +16,19 @@ endif()
 
 project ("perf_octree" LANGUAGES CXX)
 
+if(LINUX)
+    find_package(PCL 1.12 REQUIRED)
+    find_package(PCL-ONEAPI 1.12 REQUIRED)
+    include_directories(${PCL_INCLUDE_DIRS} ${PCL-ONEAPI_INCLUDE_DIRS})
+    link_directories(${PCL_LIBRARY_DIRS} ${PCL-ONEAPI_LIBRARY_DIRS})
+    add_definitions(${PCL_DEFINITIONS} ${PCL-ONEAPI_DEFINITIONS})
+    add_executable( hello_sycl src/hello_sycl.cpp)
+    add_executable( perf_octree src/perf_octree.cpp)
+    target_link_libraries (perf_octree pcl_oneapi_containers pcl_oneapi_octree pcl_octree)
+endif()
+
+
+if(WIN32)
 # 将 cmake/Modules 目录放到 PATH 下面，主要是使用 FindEigen.cmake 寻找 cmake
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
 
@@ -81,5 +94,7 @@ set_target_properties(  oneapi_octree
                         perf_octree
                         PROPERTIES VS_DEBUGGER_ENVIRONMENT  "SYCL_DEVICE_FILTER=ext_oneapi_level_zero:gpu
 PATH=%PATH%;${SYCL_PATH};${PCL_ONEAPI_ROOT}/bin;${PCL_NATIVE_ROOT}/bin;")
+
+endif()
 
 endif()
