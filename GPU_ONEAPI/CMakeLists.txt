@@ -79,7 +79,7 @@ find_library(PCL_ONEAPI_OCTREE      pcl_oneapi_octree     PATHS ${PCL_ONEAPI_LIB
 
 
 add_executable( hello_sycl src/hello_sycl.cpp)
-add_executable( perf_octree src/perf_octree.cpp)
+add_executable( perf_octree src/perf_octree.cpp )
 add_executable( oneapi_octree src/oneapi_octree.cpp)
 
 

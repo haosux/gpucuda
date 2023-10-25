@@ -19,7 +19,7 @@ void pcl_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
                              std::vector<pcl::PointXYZ> &queries,
                              std::vector<float> &radiuses)
 {
-
+    double totalTime = 0.0;
     // host buffers
     std::vector<int> indices;
     pcl::Indices indices_host;
@@ -62,15 +62,19 @@ void pcl_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("pcl radius search took %.3f milliseconds \n", ipp_time);
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
 }
 
 void cuda_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
                               std::vector<pcl::PointXYZ> &queries,
                               std::vector<float> &radiuses)
 {
+    double totalTime = 0.0;
+
     // prepare device cloud
     pcl::gpu::Octree::PointCloud cloud_device;
     cloud_device.upload(points);
@@ -98,9 +102,11 @@ void cuda_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("cuda radius search took %.3f milliseconds \n", ipp_time);
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
 
     std::vector<int> downloaded;
     // std::vector<float> dists_device_downloaded;
@@ -112,6 +118,7 @@ void cuda_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
 
 void pcl_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
 {
+    double totalTime = 0.0;
 
     // prepare host cloud
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_host(new pcl::PointCloud<pcl::PointXYZ>);
@@ -148,13 +155,18 @@ void pcl_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vec
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("pcl approx nearest took %.3f milliseconds \n", ipp_time);
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
+    printf("\n\n\n");
 }
 
 void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
 {
+
+    double totalTime = 0.0;
 
     // prepare device cloud
     pcl::gpu::Octree::PointCloud cloud_device;
@@ -186,9 +198,12 @@ void cuda_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::ve
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("cuda approx nearest took %.3f milliseconds \n", ipp_time);
     }
+
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
 
     std::vector<int> downloaded;
     std::vector<float> dists_device_downloaded;
@@ -207,6 +222,12 @@ int main(int argc, char **argv)
     std::size_t data_size = 871000;
     std::size_t query_size = 10000;
     float max_radius = 1024.f / 15.f;
+
+    printf("cuda pcl octree test\n");
+    printf("point data  size is %10zu\n", data_size);
+    printf("point query size is %10zu\n", query_size);
+    printf("max radius  size is %9.1f\n", max_radius);
+
 
     std::vector<pcl::PointXYZ> points;
     std::vector<pcl::PointXYZ> queries;

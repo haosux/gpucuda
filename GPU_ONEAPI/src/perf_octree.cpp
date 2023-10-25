@@ -11,7 +11,11 @@
 #include <pcl/oneapi/octree/octree.hpp>
 #include <pcl/oneapi/containers/device_array.h>
 
-const int TEST_NUM = 10;
+#include <dpct/dpct.hpp>
+#include <iomanip>
+
+
+const int TEST_NUM = 20;
 const int max_answers = 500;
 
 const std::size_t data_size = 871000;
@@ -20,6 +24,7 @@ const float max_radius = 1024.f / 15.f;
 
 void oneapi_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
 {
+    double totalTime = 0.0;
 
     // Prepare oneAPI cloud
     pcl::oneapi::Octree::PointCloud cloud_device;
@@ -49,9 +54,11 @@ void oneapi_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("oneapi approx nearest took %.3f milliseconds \n", ipp_time);
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
 
     std::vector<int> downloaded;
     std::vector<float> dists_device_downloaded;
@@ -63,6 +70,7 @@ void oneapi_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::
 
 void pcl_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vector<pcl::PointXYZ> &queries)
 {
+    double totalTime = 0.0;
 
     // prepare host cloud
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_host(new pcl::PointCloud<pcl::PointXYZ>);
@@ -99,9 +107,11 @@ void pcl_octree_approxNearestSearch(std::vector<pcl::PointXYZ> &points, std::vec
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("pcl approx nearest took %.3f milliseconds \n", ipp_time);
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
 
     printf("\n\n\n");
 }
@@ -110,6 +120,8 @@ void oneapi_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
                                 std::vector<pcl::PointXYZ> &queries,
                                 std::vector<float> &radiuses)
 {
+    double totalTime = 0.0;
+
     // Prepare oneAPI cloud
     pcl::oneapi::Octree::PointCloud cloud_device;
     cloud_device.upload(points);
@@ -137,8 +149,14 @@ void oneapi_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
 
+
         printf("oneapi radius search took %.3f milliseconds \n", ipp_time);
+        
+        if(i==0)
+            continue;
+        totalTime += ipp_time;
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/(TEST_NUM - 1) );
 
     std::vector<int> downloaded;
     // std::vector<float> dists_device_downloaded;
@@ -152,6 +170,7 @@ void pcl_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
                              std::vector<pcl::PointXYZ> &queries,
                              std::vector<float> &radiuses)
 {
+    double totalTime = 0.0;
 
     // host buffers
     std::vector<int> indices;
@@ -195,13 +214,50 @@ void pcl_octree_radiusSearch(std::vector<pcl::PointXYZ> &points,
 
         auto stop = std::chrono::steady_clock::now();
         auto ipp_time = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000.0;
+        totalTime += ipp_time;
 
         printf("pcl radius search took %.3f milliseconds \n", ipp_time);
     }
+    printf("\n\nTotal average time %.3f milliseconds \n", totalTime/TEST_NUM );
+
 }
+
+
+void display_device_info(cl::sycl::queue mQueue)
+{
+    int c_width = 24;
+    auto device = mQueue.get_device();
+    auto p_name = device.get_platform().get_info<sycl::info::platform::name>();
+    std::cout << std::setw(c_width) << "Platform Name: " << p_name << "\n";
+
+    auto p_version = device.get_platform().get_info<sycl::info::platform::version>();
+    std::cout << std::setw(c_width) << "Platform Version: " << p_version << "\n";
+
+    auto d_name = device.get_info<sycl::info::device::name>();
+    std::cout << std::setw(c_width) << "Device Name: " << d_name << "\n";
+
+    auto max_work_group = device.get_info<sycl::info::device::max_work_group_size>();
+    std::cout << std::setw(c_width) << "Max Work Group Size: " << max_work_group << "\n";
+
+    auto max_compute_units = device.get_info<sycl::info::device::max_compute_units>();
+    std::cout << std::setw(c_width) << "Max Compute Units: " << max_compute_units << "\n";
+
+    auto global_mem_size = device.get_info<sycl::info::device::global_mem_size>();
+    std::cout << std::setw(c_width) << "Global Mem Size: " << global_mem_size << "\n";  // 13604175872  12GB
+
+    auto local_mem_size = device.get_info<sycl::info::device::local_mem_size>();
+    std::cout << std::setw(c_width) << "Local  Mem Size: " << local_mem_size << "\n";   // 65536  64KB
+
+    std::cout << std::endl << std::endl;
+}
+
 
 int main(int argc, char **argv)
 {
+
+    sycl::queue q = dpct::get_default_queue();
+
+    display_device_info(q);
 
     printf("oneapi pcl octree test\n");
     printf("point data  size is %10zu\n", data_size);
