@@ -15,16 +15,35 @@ pcl gpu 最邻近搜索这个算法，arc a770 远远落后 RTX2080Ti，这个�
 |approx nearest  |24.2                 |      70.2             |     304.3         |   14.3          |
 
 
-# 硬件要求
+## 硬件要求
 
 1. 显卡要求，nvidia 显卡或者 intel 11代以后的核显，或者 intell arc 独立显卡
 
-# 软件要求
+## 软件要求
 
 1. nvidia 驱动，cuda 套件安装成功，pcl 13.1 cuda 版本编译安装成功
 2. oneapi 安装成功，pcl oneapi 编译成功
 
+## 编译执行
 
+### GPU_ONEAPI
+```bash
+source /opt/intel/oneapi/setvars.sh
+mkdir build
+cd build
+cmake ..
+make
+./perf_octree
+```
+
+### GPU_CUDA
+```bash
+mkdir build
+cd build
+cmake ..
+make
+./perf_approx
+```
 
 
 running Example  on i7-8700 and RTX 2080Ti 
